@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style>
+            *{
+                margin: 0px;
+                padding: 0px;
+            }
+            #app{
+                width: 60%;
+                margin: 0px auto;
+            }
+            .sy,.list{
+                display: flex;
+                justify-content: space-around;
+                flex-direction: row;
+                border-bottom: 1px solid gainsboro;
+            }
+             .col{
+                 color: #333;
+                 text-decoration: none;
+             }
+             .list2{
+                 color: darkorchid;
+             }
+             .list3{
+                 text-decoration: none;
+             }
+        </style>
+    </head>
+    <body>
+
+        <div id="app">
+            <div class="sy">
+               <router-link :to="{name:'Home'}" class="col">首页</router-link>
+               <router-link :to="{name:'New1'}" class="col">新闻</router-link>
+               <router-link :to="{name:'Sponsor'}" class="col">赞助商</router-link>
+               <router-link :to="{name:'My'}" class="col">我的</router-link> 
+            </div>
+            
+            <!-- <button type="button" @click="getHistory">返回</button>
+            <button type="button" @click="getHash">url</button> -->
+            <!-- 5.路由出口（路由匹配到的组件将渲染在这里）使用router-view -->
+            <router-view></router-view>
+        </div>
+        <template id="home">
+            <div class="list">
+                <router-link :to="{name:'Real'}">
+                    <div class="">
+                        实时新闻
+                    </div>
+                </router-link>
+                <router-link :to="{name:'Verse'}">
+                    <div class="">
+                        优美诗句
+                    </div>
+                </router-link>
+            </div>
+            <router-view></router-view>
+        </template>
+        <template id="real">
+            <div class="list1">
+                实时新闻
+            </div>
+        </template>
+        <template id="verse">
+            <div class="list1">
+                优美诗句
+            </div>
+        </template>
+        <template id="new1">
+            <div>
+                <div v-if="$route.path == '/new1'">
+                新闻
+                    <router-link 
+                    :to="{name:'Newdata',query:{id:item.id}}"
+                    v-for="(item,index) in newlist" :key="index">
+                    <div>{{ item.id }}.{{ item.name }}</div>   
+                    </router-link>
+                </div>
+                <router-view></router-view>
+            </div>
+            
+        </template>
+        <template id="newdata">
+            <div>
+                新闻详情
+                <br>
+                {{ newdataText }}
+            </div>
+        </template>
+        <template id="sponsor">
+            <div>
+                <div v-if="$route.path == '/sponsor'">
+                赞助商
+                    <router-link  class="list3"
+                    :to="{name:'Sponsor',query:{id:item.id}}"
+                    v-for="(item,index) in sponsor" :key="index">
+                    <div class="list2">{{ item.id }}.{{ item.name }}</div>   
+                    </router-link>
+                </div>
+                <router-view></router-view>
+            </div>
+        </template>
+        <template id="my">
+            <div>
+                个人中心
+            </div>
+        </template>
+        <template id="person">
+            <div>
+                个人中心
+            </div>
+        </template>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue-router/dist/vue-router.js"></script>
+        <!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+        <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+        <script type="text/javascript">
+            // 0.假定两个（路由）组件
+            var home = {
+                template: '#home'
+            }
+            var new1 = {
+                data(){
+                    return{
+                       newlist:[{
+                           id:1,
+                           name:'新闻1'
+                       },
+                       {
+                           id:2,
+                           name:'新闻2'
+                       },
+                       {
+                           id:3,
+                           name:'新闻3'
+                       }] 
+                    }
+                },
+                template: '#new1'
+            }
+            var sponsor = {
+                data(){
+                    return{
+                       sponsor:[] 
+                    }
+                },
+                template: '#sponsor',
+                mounted(){
+                        console.log(this.$route.query.id,'查看id')
+                   this.getSponsordatas(this.$route.query.id) 
+                },
+                methods:{
+                   async getSponsordatas(id){
+                        // console.log(this.$http,'查看id')
+                        this.sponsor = await this.$http.get('https://mock.mengxuegu.com/mock/613f18a4686c29122640fc7a/example/s/'+id)
+                        this.sponsor = this.sponsor.data.data
+                        console.log(this.sponsor)
+                    }
+                }
+            }
+            var my = {
+                template: '#my'
+            }
+            var real = {
+                template: '#real'
+            }
+            var verse = {
+                template: '#verse'
+            }
+            var person = {
+                template: '#person'
+            }
+            var newdata = {
+                data(){
+                    return{
+                        newdataText:''
+                    }
+                },
+                template: '#newdata',
+                mounted(){
+                        console.log(this.$route.query.id,'查看id')
+                   this.getNewDatas(this.$route.query.id) 
+                },
+                methods:{
+                   async getNewDatas(id){
+                        this.newdataText = await this.$http.get('https://mock.mengxuegu.com/mock/613f388d686c29122640fcf6/example_copy/restful/'+id)
+                        
+                             console.log(this.newdataText.data.data[0],'查看id')
+                             this.newdataText = this.newdataText.data.data[0].user.text
+                    }
+                }
+            }
+            // 1.定义路由对象
+            var routes = [{
+                    path: '/',//根页面
+                    // redirect 可以重定向，指向新的路径
+                    // 当path为根页面时，redirect表示一进入页面出现的页面
+                    redirect: '/home'
+                },
+                // 一个路由只对应一个根组件,所有component不用加s
+                // 定义路由
+                {
+                    path: '/home',
+                    // 对应的组件
+                    component: home,
+                    name:'Home',
+                    // 路由嵌套
+                    // 配置子路由,子路由是指当前页面的子页面
+                    children:[
+                        {
+                            path:'/home/home',
+                            redirect:'/home/real'
+                        },
+                        {
+                            path:'/home/real',
+                            component: real,
+                            name:'Real'
+                        },
+                        {
+                            path:'/home/verse',
+                            component: verse,
+                            name:'Verse'
+                        }
+                    ]
+                    
+                }, {
+                    path: '/new1',
+                    component: new1,
+                    name:'New1',
+                    children:[{
+                        path: '/new1/newdata',
+                        component: newdata,
+                        name:'Newdata'
+                    }]
+                },
+                {
+                    path: '/sponsor',
+                    component: sponsor,
+                    name:'Sponsor'
+                },
+                {
+                    path: '/my',
+                    component: my,
+                    name:'My',
+                    children:[{
+                        path: '/person',
+                        component: person,
+                        name:'Person'
+                    }]
+                },
+            ]
+            // 2.书写路由
+            var router = new VueRouter({
+                routes: routes
+            })
+
+            var vm = new Vue({
+                // components:{home,login},
+                el: '#app',
+                data() {
+                    return {
+                        toList:[{name: 'Login',label: '前往登录页'}]
+                    }
+                },
+                methods: {
+                    getHistory() {
+                        // console.log(history)
+                        history.back()
+                    },
+                    getHash() {
+                        console.log(window.location.hash)
+                        console.log(this.$route)
+                    }
+                },
+                // 3.使用路由
+                router
+
+            })
+            // vm.$http = axios
+        </script>
+    </body>
+</html>
